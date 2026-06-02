@@ -1867,6 +1867,11 @@ function montarLinkWhatsApp(e) {
 updateSelectedAvatar(0);
 </script>
 <script>
+// Guard: Garantir que HD_BACKEND_URL está definido
+if (!window.HD_BACKEND_URL) {
+  window.HD_BACKEND_URL = 'https://humanos-digitais-tts-v2.onrender.com';
+}
+
 window.renderAvatars = async function() {
   const grid = document.getElementById('thumbnailGrid') ||
                document.querySelector('.thumbnails-grid, .grid-3-cols');
