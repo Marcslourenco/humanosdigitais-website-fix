@@ -1068,6 +1068,66 @@ const sendBtn = document.getElementById('sendMessageBtn');
 const chatInput = document.getElementById('chatInput');
 const saudacaoMsg = document.getElementById('saudacaoMsg');
 const quickRepliesArea = document.getElementById('quickRepliesArea');
+
+// ========== RENDERIZAÇÃO DE AVATARES ==========
+window.renderAvatars = async function() {
+    const grid = document.getElementById('thumbnailGrid') || document.querySelector('.thumbnails-grid, .grid-3-cols');
+    if (!grid) {
+        console.error("❌ Grid de avatares não encontrada no DOM");
+        return;
+    }
+
+    // Fallback inline de segurança (caso a API falhe, esteja em cold start ou haja erro de CORS)
+    const avataresFallback = [
+        { avatar_id: "sofia", nome: "Sofia", role: "Assistente Geral", imagem: "/avatares/sofia-principal.png" },
+        { avatar_id: "rafael", nome: "Rafael", role: "Especialista Tributário", imagem: "/avatares/rafael-principal.png" }
+    ];
+
+    try {
+        const response = await fetch('https://humanos-digitais-tts-v2.onrender.com/api/avatars');
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
+        // Normaliza a resposta, aceitando tanto {avatares: [...]} quanto [...] direto
+        window.avatares = data.avatares || (Array.isArray(data) ? data : []); 
+    } catch (error) {
+        console.warn("⚠️ Falha ao buscar API de avatares, usando fallback local:", error);
+        window.avatares = avataresFallback;
+    }
+
+    grid.innerHTML = ''; // Limpa estado anterior (evita duplicação em hot reload)
+    
+    window.avatares.forEach(avatar => {
+        const card = document.createElement('div');
+        card.className = 'avatar-card';
+        card.dataset.avatarId = avatar.avatar_id;
+        
+        // Garante que a função de seleção exista antes de atribuir o evento
+        card.onclick = () => {
+            if (typeof window.selectAvatar === 'function') {
+                window.selectAvatar(avatar.avatar_id);
+            } else {
+                console.warn("⚠️ window.selectAvatar não está definido no escopo global");
+            }
+        };
+        
+        card.innerHTML = `
+            <img src="${avatar.imagem}" alt="${avatar.nome}" loading="lazy" 
+                 onerror="this.onerror=null; this.src='https://via.placeholder.com/150?text=${encodeURIComponent(avatar.nome)}";>
+            <h3>${avatar.nome}</h3>
+            <p class="role">${avatar.role}</p>
+        `;
+        grid.appendChild(card);
+    });
+    
+    console.log(`✅ ${window.avatares.length} avatares renderizados com sucesso.`);
+};
+
+// Garante execução assim que o DOM estiver pronto
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', window.renderAvatars);
+} else {
+    window.renderAvatars();
+}
 const perguntasBox = document.getElementById('perguntasBox');
 const perguntasLista = document.getElementById('perguntasLista');
 
