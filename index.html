@@ -1931,6 +1931,21 @@ window.renderAvatars = async function() {
   window.avatares = avataresList;
   grid.innerHTML = '';
 
+  # Ordenar avatares conforme esperado
+  const ORDER = ['sofia','rafael','clara','lucas','amanda','fernanda',
+                 'marina','roberto','luisa','lais','paula',
+                 'bruno','giovana','marcos','carol'];
+  
+  avataresList.sort(function(a, b) {
+    var idA = (a.avatar_id || a.nome?.toLowerCase() || '').toLowerCase();
+    var idB = (b.avatar_id || b.nome?.toLowerCase() || '').toLowerCase();
+    var iA = ORDER.indexOf(idA);
+    var iB = ORDER.indexOf(idB);
+    if (iA === -1) iA = 999;
+    if (iB === -1) iB = 999;
+    return iA - iB;
+  });
+
   avataresList.forEach(function(avatar) {
     var avatarId = avatar.avatar_id || avatar.nome?.toLowerCase();
     var btn = document.createElement('button');
