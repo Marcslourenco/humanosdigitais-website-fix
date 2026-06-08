@@ -1990,6 +1990,16 @@ if (document.readyState === 'loading') {
 }
 </script>
 
+<script>
+# Expor funções críticas no escopo global
+if (typeof updateSelectedAvatar === 'function') window.selectAvatar = updateSelectedAvatar;
+if (typeof requestAvatarSpeech === 'function') window.requestAvatarSpeech = requestAvatarSpeech;
+if (typeof falarAvatar === 'function') window.falarAvatar = falarAvatar;
+if (typeof saudarAvatar === 'function') window.saudarAvatar = saudarAvatar;
+if (typeof getOrCreateSessionForAvatar === 'function') window.getOrCreateSessionForAvatar = getOrCreateSessionForAvatar;
+if (typeof normalizeSpeechOptions === 'function') window.normalizeSpeechOptions = normalizeSpeechOptions;
+</script>
+
 </body>
 </html>
 // FORCE REBUILD: 2026-05-25 15:44:02 — Cache Bust v8
