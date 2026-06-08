@@ -1931,7 +1931,7 @@ window.renderAvatars = async function() {
   window.avatares = avataresList;
   grid.innerHTML = '';
 
-  # Ordenar avatares conforme esperado
+  // Ordenar avatares conforme esperado
   const ORDER = ['sofia','rafael','clara','lucas','amanda','fernanda',
                  'marina','roberto','luisa','lais','paula',
                  'bruno','giovana','marcos','carol'];
@@ -2006,7 +2006,7 @@ if (document.readyState === 'loading') {
 </script>
 
 <script>
-# Expor funções críticas no escopo global
+// Expor funções críticas no escopo global
 if (typeof updateSelectedAvatar === 'function') window.selectAvatar = updateSelectedAvatar;
 if (typeof requestAvatarSpeech === 'function') window.requestAvatarSpeech = requestAvatarSpeech;
 if (typeof falarAvatar === 'function') window.falarAvatar = falarAvatar;
