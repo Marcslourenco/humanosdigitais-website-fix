@@ -1865,6 +1865,15 @@ function montarLinkWhatsApp(e) {
 }
 
 updateSelectedAvatar(0);
+
+// Expor funções críticas no escopo global
+window.updateSelectedAvatar = updateSelectedAvatar;
+window.selectAvatar = updateSelectedAvatar;
+window.requestAvatarSpeech = requestAvatarSpeech;
+window.normalizeSpeechOptions = normalizeSpeechOptions;
+window.falarAvatar = falarAvatar;
+window.saudarAvatar = saudarAvatar;
+window.getOrCreateSessionForAvatar = getOrCreateSessionForAvatar;
 </script>
 <script>
 // Guard: Garantir que HD_BACKEND_URL está definido
