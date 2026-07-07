@@ -19,17 +19,13 @@ jobs:
       - name: Install Vercel CLI
         run: npm install -g vercel
       
-      - name: Verify Vercel Token
-        run: vercel whoami --token ${{ secrets.VERCEL_TOKEN }}
-      
-      - name: Pull Vercel Environment Info
-        run: vercel pull --yes --environment=production --token ${{ secrets.VERCEL_TOKEN }}
-        env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-      
-      - name: Deploy to Vercel (production)
-        run: vercel deploy --prod --prebuilt --token ${{ secrets.VERCEL_TOKEN }}
+      - name: Deploy to Vercel
+        run: |
+          vercel deploy \
+            --prod \
+            --yes \
+            --token ${{ secrets.VERCEL_TOKEN }} \
+            --name humanosdigitais-website-fix
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
