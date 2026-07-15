@@ -20,17 +20,16 @@ jobs:
       - name: Install Latest Vercel CLI
         run: npm install -g vercel@latest
 
-      - name: Create .vercel directory dynamically
+      - name: Force Clean and Create .vercel
         run: |
+          # Força a remoção de qualquer .vercel que venha do histórico do Git
+          rm -rf .vercel
           mkdir -p .vercel
-          echo '{
-            "projectId": "${{ secrets.VERCEL_PROJECT_ID }}",
-            "orgId": "${{ secrets.VERCEL_ORG_ID }}"
-          }' > .vercel/project.json
-          echo "✅ .vercel/project.json criado com sucesso"
+          # Cria o arquivo apenas com o Project ID (Org ID não é necessário para conta pessoal e pode causar conflito)
+          echo '{"projectId": "${{ secrets.VERCEL_PROJECT_ID }}"}' > .vercel/project.json
+          echo "✅ .vercel/project.json limpo e criado com sucesso"
 
       - name: Deploy to Vercel Production
-        run: vercel deploy --prod --yes --token ${{ secrets.VERCEL_TOKEN }}
+        run: vercel deploy --prod --yes --token ${{ secrets.VERCEL_TOKEN }} --project="${{ secrets.VERCEL_PROJECT_ID }}"
         env:
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
