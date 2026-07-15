@@ -1099,6 +1099,25 @@ window.renderAvatars = async function() {
 
     grid.innerHTML = ''; // Limpa estado anterior (evita duplicação em hot reload)
     
+    // Mapeamento de IDs de avatar para nomes de arquivo com prefixo numérico
+    const avatarFileMap = {
+        'sofia': '01-sofia-principal.png',
+        'rafael': '02-rafael-principal.png',
+        'clara': '03-clara-principal.png',
+        'lucas': '04-lucas-principal.png',
+        'amanda': '05-amanda-principal.png',
+        'fernanda': '06-fernanda-principal.png',
+        'marina': '07-marina-principal.png',
+        'roberto': '08-roberto-principal.png',
+        'luisa': '09-luisa-principal.png',
+        'lais': '10-lais-principal.png',
+        'paula': '11-paula-principal.png',
+        'bruno_giovana': '12-bruno-principal.png',
+        'marcos_carol': '14-marcos-principal.png',
+        'giovana': '13-giovana-principal.png',
+        'carol': '15-carol-principal.png'
+    };
+    
     window.avatares.forEach(avatar => {
         const card = document.createElement('div');
         card.className = 'avatar-card';
@@ -1113,9 +1132,13 @@ window.renderAvatars = async function() {
             }
         };
         
+        // Usar mapeamento para garantir o prefixo numérico correto
+        const imageName = avatarFileMap[avatar.avatar_id] || `${avatar.avatar_id}-principal.png`;
+        const imageUrl = `/assets/avatares/estaticas/${imageName}`;
+        
         card.innerHTML = `
-            <img src="${avatar.imagem}" alt="${avatar.nome}" loading="lazy" 
-                 onerror="this.onerror=null; this.src='https://via.placeholder.com/150?text=${encodeURIComponent(avatar.nome)}";>
+            <img src="${imageUrl}" alt="${avatar.nome}" loading="lazy" 
+                 onerror="this.onerror=null; this.src='https://via.placeholder.com/150?text=${encodeURIComponent(avatar.nome)}";
             <h3>${avatar.nome}</h3>
             <p class="role">${avatar.role}</p>
         `;
