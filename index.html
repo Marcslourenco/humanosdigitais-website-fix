@@ -1483,7 +1483,8 @@ async function requestAvatarSpeech(avatarId, texto, eventType = 'query') {
       text: cleanText || '',
       event_type: resolvedEventType,
       language: 'pt-BR',
-      session_id: getOrCreateSessionForAvatar(cleanAvatarId)
+      session_id: getOrCreateSessionForAvatar(cleanAvatarId),
+      context_url: getCurrentContextUrl()
     })
   });
   
