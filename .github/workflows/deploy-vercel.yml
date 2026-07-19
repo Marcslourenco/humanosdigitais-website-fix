@@ -11,6 +11,8 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+        with:
+          clean: true
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -20,14 +22,8 @@ jobs:
       - name: Install Latest Vercel CLI
         run: npm install -g vercel@latest
 
-      - name: Force Clean and Create .vercel
-        run: |
-          rm -rf .vercel
-          mkdir -p .vercel
-          echo '{"projectId": "${{ secrets.VERCEL_PROJECT_ID }}", "orgId": "${{ secrets.VERCEL_ORG_ID }}"}' > .vercel/project.json
-
       - name: Deploy to Vercel Production
-        run: vercel deploy --prod --yes --token ${{ secrets.VERCEL_TOKEN }}
-        env:
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+        run: |
+          npx vercel deploy --prod --yes \
+            --token=${{ secrets.VERCEL_TOKEN }} \
+            --project=${{ secrets.VERCEL_PROJECT_ID }}
