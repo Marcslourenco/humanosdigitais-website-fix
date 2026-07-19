@@ -1908,8 +1908,18 @@ if (!window.HD_BACKEND_URL) {
 
 
 <script>
+// Função para selecionar avatar por ID (usado por renderAvatars)
+function selectAvatarById(avatarId) {
+  const index = avatars.findIndex(a => getAvatarIdFromName(a.name) === avatarId);
+  if (index >= 0) {
+    updateSelectedAvatar(index);
+  } else {
+    console.warn(`Avatar com ID '${avatarId}' não encontrado`);
+  }
+}
+
 // Expor funções críticas no escopo global
-if (typeof updateSelectedAvatar === 'function') window.selectAvatar = updateSelectedAvatar;
+if (typeof selectAvatarById === 'function') window.selectAvatar = selectAvatarById;
 if (typeof requestAvatarSpeech === 'function') window.requestAvatarSpeech = requestAvatarSpeech;
 if (typeof falarAvatar === 'function') window.falarAvatar = falarAvatar;
 if (typeof saudarAvatar === 'function') window.saudarAvatar = saudarAvatar;
