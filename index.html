@@ -1072,88 +1072,6 @@ const chatInput = document.getElementById('chatInput');
 const saudacaoMsg = document.getElementById('saudacaoMsg');
 const quickRepliesArea = document.getElementById('quickRepliesArea');
 
-// ========== RENDERIZAÇÃO DE AVATARES ==========
-window.renderAvatars = async function() {
-    const grid = document.getElementById('thumbnailGrid') || document.querySelector('.thumbnails-grid, .grid-3-cols');
-    if (!grid) {
-        console.error("❌ Grid de avatares não encontrada no DOM");
-        return;
-    }
-
-    // Fallback inline de segurança (caso a API falhe, esteja em cold start ou haja erro de CORS)
-    const avataresFallback = [
-        { avatar_id: "sofia", nome: "Sofia", role: "Assistente Geral", imagem: "/assets/avatares/estaticas/01-sofia-principal.png" },
-        { avatar_id: "rafael", nome: "Rafael", role: "Especialista Tributário", imagem: "/assets/avatares/estaticas/02-rafael-principal.png" }
-    ];
-
-    try {
-        const response = await fetch('https://humanos-digitais-tts-v2.onrender.com/api/avatars');
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        const data = await response.json();
-        // Normaliza a resposta, aceitando tanto {avatares: [...]} quanto [...] direto
-        window.avatares = data.avatares || (Array.isArray(data) ? data : []); 
-    } catch (error) {
-        console.warn("⚠️ Falha ao buscar API de avatares, usando fallback local:", error);
-        window.avatares = avataresFallback;
-    }
-
-    grid.innerHTML = ''; // Limpa estado anterior (evita duplicação em hot reload)
-    
-    // Mapeamento de IDs de avatar para nomes de arquivo com prefixo numérico
-    const avatarFileMap = {
-        'sofia': '01-sofia-principal.png',
-        'rafael': '02-rafael-principal.png',
-        'clara': '03-clara-principal.png',
-        'lucas': '04-lucas-principal.png',
-        'amanda': '05-amanda-principal.png',
-        'fernanda': '06-fernanda-principal.png',
-        'marina': '07-marina-principal.png',
-        'roberto': '08-roberto-principal.png',
-        'luisa': '09-luisa-principal.png',
-        'lais': '10-lais-principal.png',
-        'paula': '11-paula-principal.png',
-        'bruno': '12-bruno-principal.png',
-        'giovana': '13-giovana-principal.png',
-        'marcos': '14-marcos-principal.png',
-        'carol': '15-carol-principal.png'
-    };
-    
-    window.avatares.forEach(avatar => {
-        const card = document.createElement('div');
-        card.className = 'avatar-card';
-        card.dataset.avatarId = avatar.avatar_id;
-        
-        // Garante que a função de seleção exista antes de atribuir o evento
-        card.onclick = () => {
-            if (typeof window.selectAvatar === 'function') {
-                window.selectAvatar(avatar.avatar_id);
-            } else {
-                console.warn("⚠️ window.selectAvatar não está definido no escopo global");
-            }
-        };
-        
-        // Usar mapeamento para garantir o prefixo numérico correto
-        const imageName = avatarFileMap[avatar.avatar_id] || `${avatar.avatar_id}-principal.png`;
-        const imageUrl = `/assets/avatares/estaticas/${imageName}`;
-        
-        card.innerHTML = `
-            <img src="${imageUrl}" alt="${avatar.nome}" loading="lazy" 
-                 onerror="this.onerror=null; this.src='https://via.placeholder.com/150?text=${encodeURIComponent(avatar.nome)}";
-            <h3>${avatar.nome}</h3>
-            <p class="role">${avatar.role}</p>
-        `;
-        grid.appendChild(card);
-    });
-    
-    console.log(`✅ ${window.avatares.length} avatares renderizados com sucesso.`);
-};
-
-// Garante execução assim que o DOM estiver pronto
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', window.renderAvatars);
-} else {
-    window.renderAvatars();
-}
 const perguntasBox = document.getElementById('perguntasBox');
 const perguntasLista = document.getElementById('perguntasLista');
 
@@ -1198,17 +1116,10 @@ function applyAvatarViseme(visemeName, options = {}) {
   const open = (style.open * idleFactor).toFixed(3);
   const width = (1 + ((style.width || 1) - 1) * idleFactor).toFixed(3);
   const opacity = (Math.max(0.08, (style.opacity || 0.10) * idleFactor)).toFixed(3);
-  // FIX: Remover shift vertical para evitar tremor no pescoço
-  // O shift causava movimento de TODO o avatar, não apenas da boca
-  // const shiftY = `${(-2.4 * style.open * idleFactor).toFixed(2)}px`;
-  const shiftY = '0px'; // Apenas boca se move, não o pescoço
-  const scale = (1 + style.open * 0.012 * idleFactor).toFixed(3);
   floatAvatarPlaceholder.dataset.viseme = viseme.toLowerCase();
   floatAvatarPlaceholder.style.setProperty('--mouth-open', open);
   floatAvatarPlaceholder.style.setProperty('--mouth-width', width);
   floatAvatarPlaceholder.style.setProperty('--mouth-opacity', opacity);
-  floatAvatarPlaceholder.style.setProperty('--avatar-shift-y', shiftY);
-  floatAvatarPlaceholder.style.setProperty('--avatar-scale', scale);
   floatAvatarPlaceholder.style.setProperty('--mouth-tilt', `${style.tilt || 0}deg`);
 }
 
@@ -1740,42 +1651,45 @@ async function handleInteraction() {
 setupContextTracking();
 
 // RENDERIZAR THUMBNAILS
+window.renderAvatars = function(){
+  const grid = document.getElementById('thumbnailGrid');
+  if(!grid) return;
+  grid.innerHTML='';
+  avatars.forEach((avatar, index) => {
+    const btn = document.createElement('button');
+    btn.className = `thumbnail-btn ${index === 0 ? 'selected' : ''}`;
+    btn.onclick = () => { ctaModeActive = false; updateSelectedAvatar(index); };
 
-avatars.forEach((avatar, index) => {
-  const btn = document.createElement('button');
-  btn.className = `thumbnail-btn ${index === 0 ? 'selected' : ''}`;
-  btn.onclick = () => { ctaModeActive = false; updateSelectedAvatar(index); };
+    const thumbDiv = document.createElement('div');
+    thumbDiv.className = 'thumbnail-avatar';
 
-  const thumbDiv = document.createElement('div');
-  thumbDiv.className = 'thumbnail-avatar';
-
-  if (avatar.principal) {
-    // Tenta imagem real primeiro
-    const tImg = document.createElement('img');
-    tImg.src = GH_BASE + 'estaticas/' + avatar.principal;
-    tImg.alt = avatar.name;
-    tImg.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:12px;display:block;';
-    tImg.onerror = () => {
-      // Fallback: cor + inicial
-      thumbDiv.innerHTML = '';
+    if (avatar.principal) {
+      // Tenta imagem real primeiro
+      const tImg = document.createElement('img');
+      tImg.src = '/assets/avatares/estaticas/' + avatar.principal;
+      tImg.alt = avatar.name;
+      tImg.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:12px;display:block;';
+      tImg.onerror = () => {
+        tImg.onerror = () => { thumbDiv.innerHTML=''; thumbDiv.textContent=avatar.initials; thumbDiv.style.background=avatar.color; };
+        tImg.src = GH_BASE + 'estaticas/' + avatar.principal;
+      };
+      thumbDiv.appendChild(tImg);
+      thumbDiv.style.background = 'none';
+    } else {
       thumbDiv.textContent = avatar.initials;
       thumbDiv.style.background = avatar.color;
-    };
-    thumbDiv.appendChild(tImg);
-    thumbDiv.style.background = 'none';
-  } else {
-    thumbDiv.textContent = avatar.initials;
-    thumbDiv.style.background = avatar.color;
-  }
+    }
 
-  const nameSpan = document.createElement('span');
-  nameSpan.className = 'thumbnail-name';
-  nameSpan.style.color = index === 0 ? '#1a1a1a' : '#6b7280';
-  nameSpan.textContent = avatar.name;
-  btn.appendChild(thumbDiv);
-  btn.appendChild(nameSpan);
-  thumbnailGrid.appendChild(btn);
-});
+    const nameSpan = document.createElement('span');
+    nameSpan.className = 'thumbnail-name';
+    nameSpan.style.color = index === 0 ? '#1a1a1a' : '#6b7280';
+    nameSpan.textContent = avatar.name;
+    btn.appendChild(thumbDiv);
+    btn.appendChild(nameSpan);
+    thumbnailGrid.appendChild(btn);
+  });
+};
+window.renderAvatars();
 
 // RENDERIZAR SOLUÇÕES
 const solucoesGrid = document.getElementById('solucoesGrid');
@@ -1898,37 +1812,17 @@ window.normalizeSpeechOptions = normalizeSpeechOptions;
 window.falarAvatar = falarAvatar;
 window.saudarAvatar = saudarAvatar;
 window.getOrCreateSessionForAvatar = getOrCreateSessionForAvatar;
-</script>
-<script>
+
 // Guard: Garantir que HD_BACKEND_URL está definido
 if (!window.HD_BACKEND_URL) {
   window.HD_BACKEND_URL = 'https://humanos-digitais-tts-v2.onrender.com';
 }
 
-
-
-<script>
-// Função para selecionar avatar por ID (usado por renderAvatars)
-function selectAvatarById(avatarId) {
-  const index = avatars.findIndex(a => getAvatarIdFromName(a.name) === avatarId);
-  if (index >= 0) {
-    updateSelectedAvatar(index);
-  } else {
-    console.warn(`Avatar com ID '${avatarId}' não encontrado`);
-  }
-}
-
-// Expor funções críticas no escopo global
-if (typeof selectAvatarById === 'function') window.selectAvatar = selectAvatarById;
 if (typeof requestAvatarSpeech === 'function') window.requestAvatarSpeech = requestAvatarSpeech;
 if (typeof falarAvatar === 'function') window.falarAvatar = falarAvatar;
 if (typeof saudarAvatar === 'function') window.saudarAvatar = saudarAvatar;
 if (typeof getOrCreateSessionForAvatar === 'function') window.getOrCreateSessionForAvatar = getOrCreateSessionForAvatar;
 if (typeof normalizeSpeechOptions === 'function') window.normalizeSpeechOptions = normalizeSpeechOptions;
 </script>
-
 </body>
 </html>
-// FORCE REBUILD: 2026-05-25 15:44:02 — Cache Bust v8
-// FORCE REBUILD: 2026-05-25 15:47:55 — Cache Bust v9_1779738475
-// REBUILD TRIGGER: 2026-05-25 16:20:56 — v10
