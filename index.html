@@ -163,8 +163,8 @@ body { font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neu
   filter: saturate(1.02) contrast(1.01);
 }
 @keyframes hdBreathing {
-  0%, 100% { transform: translateY(0) scale(1); }
-  50%      { transform: translateY(-1.5px); }   /* SEM scale(1.012) */
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-1.5px); }
 }
 
 
@@ -1518,6 +1518,16 @@ async function updateSelectedAvatar(index) {
     img.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:1rem;display:block;';
     img.onerror = () => { avatarLarge.innerHTML = ''; avatarLarge.textContent = avatar.initials; avatarLarge.style.background = avatar.color; };
     avatarLarge.appendChild(img);
+
+    // Posição da boca por avatar (% a partir da base do container)
+    const MOUTH_BOTTOM_MAP = {
+      sofia: 28, rafael: 26, clara: 29, lucas: 27, amanda: 28,
+      fernanda: 30, marina: 28, roberto: 25, luisa: 29, lais: 28,
+      paula: 30, bruno: 26, giovana: 29, marcos: 27, carol: 28
+    };
+    const avatarIdNorm = getAvatarIdFromName(avatar.name);
+    const mouthBottom = MOUTH_BOTTOM_MAP[avatarIdNorm] || 28;
+    floatAvatarPlaceholder.style.setProperty('--mouth-bottom', mouthBottom + '%');
     avatarLarge.style.background = 'none';
   } else {
     avatarLarge.textContent = avatar.initials;
