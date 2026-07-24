@@ -108,8 +108,7 @@ body { font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neu
   --mouth-open: 0.08;
   --mouth-width: 0.94;
   --mouth-opacity: 0.10;
-  --avatar-scale: 1;
-  --avatar-shift-y: 0px;
+  /* REMOVIDO: --avatar-scale e --avatar-shift-y (causavam tremor) */
   --mouth-tilt: 0deg;
 }
 #floatAvatarPlaceholder img {
@@ -1668,14 +1667,30 @@ async function handleInteraction() {
 setupContextTracking();
 
 // RENDERIZAR THUMBNAILS
+function sortAvatarsForDisplay(arr) {
+  const footballIds = ['bruno', 'giovana', 'marcos', 'carol'];
+  return [...arr].sort((a, b) => {
+    const aId = getAvatarIdFromName(a.name);
+    const bId = getAvatarIdFromName(b.name);
+    if (aId === 'sofia') return -1;
+    if (bId === 'sofia') return 1;
+    const aF = footballIds.includes(aId) ? 1 : 0;
+    const bF = footballIds.includes(bId) ? 1 : 0;
+    return aF - bF;
+  });
+}
+
 window.renderAvatars = function(){
   const grid = document.getElementById('thumbnailGrid');
   if(!grid) return;
   grid.innerHTML='';
-  avatars.forEach((avatar, index) => {
+  const sorted = sortAvatarsForDisplay(avatars);
+  sorted.forEach((avatar) => {
+    const realIndex = avatars.indexOf(avatar);
+    const isFirst = realIndex === 0;
     const btn = document.createElement('button');
-    btn.className = `thumbnail-btn ${index === 0 ? 'selected' : ''}`;
-    btn.onclick = () => { ctaModeActive = false; updateSelectedAvatar(index); };
+    btn.className = `thumbnail-btn ${isFirst ? 'selected' : ''}`;
+    btn.onclick = () => { ctaModeActive = false; updateSelectedAvatar(realIndex); };
 
     const thumbDiv = document.createElement('div');
     thumbDiv.className = 'thumbnail-avatar';
@@ -1699,7 +1714,7 @@ window.renderAvatars = function(){
 
     const nameSpan = document.createElement('span');
     nameSpan.className = 'thumbnail-name';
-    nameSpan.style.color = index === 0 ? '#1a1a1a' : '#6b7280';
+    nameSpan.style.color = isFirst ? '#1a1a1a' : '#6b7280';
     nameSpan.textContent = avatar.name;
     btn.appendChild(thumbDiv);
     btn.appendChild(nameSpan);
@@ -1823,9 +1838,13 @@ updateSelectedAvatar(0);
 
 // Expor funções críticas no escopo global
 window.updateSelectedAvatar = updateSelectedAvatar;
-function selectAvatarById(avatarId) {
-  const idx = avatars.findIndex(a => getAvatarIdFromName(a.name) === String(avatarId).toLowerCase());
-  if (idx < 0 || idx >= avatars.length) { console.error('avatarId invalido:', avatarId); return; }
+function selectAvatarById(avatarIdOrIndex) {
+  if (typeof avatarIdOrIndex === 'number') {
+    updateSelectedAvatar(avatarIdOrIndex);
+    return;
+  }
+  const idx = avatars.findIndex(a => getAvatarIdFromName(a.name) === String(avatarIdOrIndex).toLowerCase());
+  if (idx < 0) { console.error('Avatar nao encontrado:', avatarIdOrIndex); return; }
   updateSelectedAvatar(idx);
 }
 window.selectAvatar = selectAvatarById;
