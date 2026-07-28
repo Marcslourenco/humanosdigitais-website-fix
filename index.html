@@ -142,7 +142,7 @@ body { font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neu
   position: absolute;
   left: 50%;
   bottom: var(--mouth-bottom, 28%);
-  width: 100%;
+  width: var(--mouth-base-width, 5%);
   height: 12%;
   border-radius: 999px;
   background: radial-gradient(ellipse at center, rgba(22, 18, 34, 0.88) 0%, rgba(22, 18, 34, 0.22) 62%, rgba(22, 18, 34, 0) 74%);
@@ -1506,22 +1506,42 @@ function resetAutoReturnTimer() {
   if (selectedAvatarIndex !== 0) {
     // Salvar último avatar visitado em sessionStorage
     const avatar = avatars[selectedAvatarIndex];
-    if (avatar) {
+    const avatarIdNorm = getAvatarIdFromName(avatar.name);
+    if (avatarIdNorm !== 'sofia' && avatar) {
       sessionStorage.setItem('hd_last_avatar', JSON.stringify({
-        id: getAvatarIdFromName(avatar.name), nome: avatar.name, role: avatar.role || avatar.shortRole,
+        id: avatarIdNorm, nome: avatar.name, role: avatar.role || avatar.shortRole || 'especialista',
         timestamp: Date.now()
       }));
     }
     autoReturnTimer = setTimeout(() => {
       if (selectedAvatarIndex !== 0) {
-        // Auto-return contextual: saudação inteligente baseada no último avatar
-        const lastAvatar = JSON.parse(sessionStorage.getItem('hd_last_avatar') || 'null');
-        if (lastAvatar && (Date.now() - lastAvatar.timestamp < 300000)) {
-          const contextualGreeting = `Oi! Percebi que você estava interessado no ${lastAvatar.nome}, ${lastAvatar.role}. Se precisar de mais informações sobre isso ou sobre qualquer outro assunto, estou aqui para ajudar!`;
-          falarAvatar('sofia', contextualGreeting, { event_type: 'intro' });
-        } else {
-          saudarAvatar('sofia');
+        const lastData = sessionStorage.getItem('hd_last_avatar');
+        if (lastData) {
+          const last = JSON.parse(lastData);
+          const elapsed = Date.now() - last.timestamp;
+          if (elapsed < 600000) {
+            const greeting = `Oi! Percebi que você estava interessado no ${last.nome}, ${last.role}. Se precisar de mais informações sobre isso ou sobre qualquer outro assunto, estou aqui para ajudar!`;
+            sessionStorage.setItem('hd_returned_contextual', 'true');
+            requestAvatarSpeech('sofia', greeting, 'intro').then(data => {
+              if (data && data.audio_data) {
+                playBase64Audio(data.audio_data);
+              }
+              if (data && data.text_response) {
+                const bubble = document.querySelector('.chat-bubble-small, .saudacao-msg');
+                if (bubble) bubble.textContent = data.text_response;
+              }
+            }).catch(e => {
+              console.warn('Auto-return TTS falhou, usando fallback:', e);
+              saudarAvatar('sofia');
+            });
+            updateSelectedAvatar(0);
+            interactionCount = 0;
+            return;
+          }
         }
+        // Fallback: saudação genérica
+        sessionStorage.setItem('hd_returned_contextual', 'true');
+        saudarAvatar('sofia');
         updateSelectedAvatar(0);
         interactionCount = 0;
       }
@@ -1569,7 +1589,8 @@ async function updateSelectedAvatar(index) {
     const params = MOUTH_PARAMS_MAP[avatarIdNorm] || { bottom: '40%', width: 5, height: 3, opacity: 30, blur: 0.5 };
     
     floatAvatarPlaceholder.style.setProperty('--mouth-bottom', params.bottom);
-    floatAvatarPlaceholder.style.setProperty('--mouth-width', (params.width / 100).toFixed(3));
+    floatAvatarPlaceholder.style.setProperty('--mouth-base-width', params.width + '%');
+    floatAvatarPlaceholder.style.setProperty('--mouth-width', '0.94');
     floatAvatarPlaceholder.style.setProperty('--mouth-open', (params.height / 100).toFixed(3));
     floatAvatarPlaceholder.style.setProperty('--mouth-opacity', (params.opacity / 100).toFixed(2));
     floatAvatarPlaceholder.style.setProperty('--mouth-blur', params.blur + 'px');
@@ -1640,7 +1661,12 @@ async function updateSelectedAvatar(index) {
     }
   }
   
-  if (!ctaModeActive) { saudacaoMsg.textContent = avatar.saudacao; limparQuickReplies(); }
+  if (!ctaModeActive) {
+    if (!sessionStorage.getItem('hd_returned_contextual')) {
+      saudacaoMsg.textContent = avatar.saudacao;
+    }
+    limparQuickReplies();
+  }
   mostrarPerguntasMainArea(avatar);
 
   if (index !== 0) demoBadge.classList.add('active');
