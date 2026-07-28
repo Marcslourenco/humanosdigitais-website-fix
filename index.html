@@ -150,7 +150,7 @@ body { font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neu
   transform-origin: center center;
   opacity: 0.35;
   transition: transform 100ms linear, opacity 150ms ease;
-  filter: blur(0.3px);
+  filter: blur(var(--mouth-blur, 1px));
   pointer-events: none;
   mix-blend-mode: multiply;
 }
@@ -1526,16 +1526,32 @@ async function updateSelectedAvatar(index) {
     img.onerror = () => { avatarLarge.innerHTML = ''; avatarLarge.textContent = avatar.initials; avatarLarge.style.background = avatar.color; };
     avatarLarge.appendChild(img);
 
-    // Posição da boca por avatar (% a partir da base do container) — CALIBRADOS PELO USUÁRIO
-    const MOUTH_BOTTOM_MAP = {
-      'sofia': '45%', 'rafael': '38%', 'clara': '37%', 'lucas': '34%',
-      'amanda': '39%', 'fernanda': '49%', 'marina': '44%', 'roberto': '38%',
-      'luisa': '38%', 'lais': '50%', 'paula': '41%',
-      'bruno': '35%', 'giovana': '43%', 'marcos': '49%', 'carol': '48%'
+    // Posição da boca por avatar — PARÂMETROS UNIFORMES DE TESTE (P1)
+    const MOUTH_PARAMS_MAP = {
+      'sofia':    { bottom: '45%', width: 5, height: 3, opacity: 30, blur: 0.5 },
+      'rafael':   { bottom: '38%', width: 5, height: 3, opacity: 30, blur: 0.5 },
+      'clara':    { bottom: '37%', width: 5, height: 3, opacity: 30, blur: 0.5 },
+      'lucas':    { bottom: '34%', width: 5, height: 3, opacity: 30, blur: 0.5 },
+      'amanda':   { bottom: '39%', width: 5, height: 3, opacity: 30, blur: 0.5 },
+      'fernanda': { bottom: '49%', width: 5, height: 3, opacity: 30, blur: 0.5 },
+      'marina':   { bottom: '44%', width: 5, height: 3, opacity: 30, blur: 0.5 },
+      'roberto':  { bottom: '38%', width: 5, height: 3, opacity: 30, blur: 0.5 },
+      'luisa':    { bottom: '38%', width: 5, height: 3, opacity: 30, blur: 0.5 },
+      'lais':     { bottom: '50%', width: 5, height: 3, opacity: 30, blur: 0.5 },
+      'paula':    { bottom: '41%', width: 5, height: 3, opacity: 30, blur: 0.5 },
+      'bruno':    { bottom: '35%', width: 5, height: 3, opacity: 30, blur: 0.5 },
+      'giovana':  { bottom: '43%', width: 5, height: 3, opacity: 30, blur: 0.5 },
+      'marcos':   { bottom: '49%', width: 5, height: 3, opacity: 30, blur: 0.5 },
+      'carol':    { bottom: '48%', width: 5, height: 3, opacity: 30, blur: 0.5 }
     };
     const avatarIdNorm = getAvatarIdFromName(avatar.name);
-    const mouthPos = MOUTH_BOTTOM_MAP[avatarIdNorm] || '40%';
-    floatAvatarPlaceholder.style.setProperty('--mouth-bottom', mouthPos);
+    const params = MOUTH_PARAMS_MAP[avatarIdNorm] || { bottom: '40%', width: 5, height: 3, opacity: 30, blur: 0.5 };
+    
+    floatAvatarPlaceholder.style.setProperty('--mouth-bottom', params.bottom);
+    floatAvatarPlaceholder.style.setProperty('--mouth-width', (params.width / 100).toFixed(3));
+    floatAvatarPlaceholder.style.setProperty('--mouth-open', (params.height / 100).toFixed(3));
+    floatAvatarPlaceholder.style.setProperty('--mouth-opacity', (params.opacity / 100).toFixed(2));
+    floatAvatarPlaceholder.style.setProperty('--mouth-blur', params.blur + 'px');
     avatarLarge.style.background = 'none';
   } else {
     avatarLarge.textContent = avatar.initials;
