@@ -142,7 +142,7 @@ body { font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neu
   position: absolute;
   left: 50%;
   bottom: var(--mouth-bottom, 28%);
-  width: 28%;
+  width: 100%;
   height: 12%;
   border-radius: 999px;
   background: radial-gradient(ellipse at center, rgba(22, 18, 34, 0.88) 0%, rgba(22, 18, 34, 0.22) 62%, rgba(22, 18, 34, 0) 74%);
@@ -608,7 +608,7 @@ body { font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neu
         <span id="floatPlaceholderLetter">S</span>
       </div>
     </div>
-    <div class="chat-bubble-small" id="saudacaoMsg">Oi! Sou a Sofia, vamos conversar? 😊</div>
+    <div class="chat-bubble-small" id="saudacaoMsg">Oi! Sou a Sofia, sua anfitriã aqui na plataforma. Estou pronta para te apresentar nossos humanos digitais e tirar qualquer dúvida. Vamos conversar? 😊</div>
     <div class="quick-replies-small" id="quickRepliesArea"></div>
     <div class="avatar-input-overlay">
       <input type="text" placeholder="Digite sua mensagem..." id="chatInput">
@@ -969,7 +969,7 @@ window.HD_BACKEND_URL = 'https://humanos-digitais-tts-v2.onrender.com';
 // ========== DADOS DOS AVATARES ==========
 const GH_BASE = 'https://raw.githubusercontent.com/Marcslourenco/humanosdigitais-website/main/assets/avatares/';
 const avatars = [
-  { name:"Sofia", role:"Host da plataforma", shortRole:"Atendimento", genero:"feminino", color:"linear-gradient(135deg,#3b82f6,#06b6d4)", initials:"S", principal:"01-sofia-principal.png", synclip:"01-sofia-synclip.png", saudacao:"Oi! Sou a Sofia, vamos conversar? 😊", perguntas:["O que são humanos digitais?","Como funciona no meu site?","Quais segmentos vocês atendem?","Qual a diferença para um chatbot?","Como solicitar para minha empresa?"] },
+  { name:"Sofia", role:"Host da plataforma", shortRole:"Atendimento", genero:"feminino", color:"linear-gradient(135deg,#3b82f6,#06b6d4)", initials:"S", principal:"01-sofia-principal.png", synclip:"01-sofia-synclip.png", saudacao:"Oi! Sou a Sofia, sua anfitriã aqui na plataforma. Estou pronta para te apresentar nossos humanos digitais e tirar qualquer dúvida. Vamos conversar? 😊", perguntas:["O que são humanos digitais?","Como funciona no meu site?","Quais segmentos vocês atendem?","Qual a diferença para um chatbot?","Como solicitar para minha empresa?"] },
   { name:"Rafael", role:"Especialista em Substituição Tributária", shortRole:"Tributário", genero:"masculino", color:"linear-gradient(135deg,#2563eb,#3b82f6)", initials:"R", principal:"02-rafael-principal.png", synclip:"02-rafael-synclip.png", saudacao:"Oi! Sou o Rafael, especialista tributário. Como posso ajudar? 💼", perguntas:["O que é substituição tributária?","Como funciona o ICMS-ST?","Quais setores são afetados?","Como regularizar pendências fiscais?","Posso parcelar débitos tributários?"] },
   { name:"Clara", role:"Consultora Hospitalar", shortRole:"Saúde", genero:"feminino", color:"linear-gradient(135deg,#10b981,#34d399)", initials:"C", principal:"03-clara-principal.png", synclip:"03-clara-synclip.png", saudacao:"Olá! Sou a Clara, consultora hospitalar. Em que posso ajudar? 🏥", perguntas:["Quais especialidades o hospital possui?","Como agendar uma consulta?","O hospital atende convênios?","Onde fica a emergência?","Quais horários de atendimento?"] },
   { name:"Lucas", role:"Consultor Automotivo", shortRole:"Automotivo", genero:"masculino", color:"linear-gradient(135deg,#8b5cf6,#a855f7)", initials:"L", principal:"04-lucas-principal.png", synclip:"04-lucas-synclip.png", saudacao:"E aí! Sou o Lucas, consultor automotivo. Bora conversar? 🚗", perguntas:["Qual a diferença entre os modelos?","Tem financiamento disponível?","Qual o consumo do veículo?","Posso agendar um test drive?","Vocês aceitam carro na troca?"] },
@@ -1017,7 +1017,7 @@ const SECTION_CONTEXT_MAP = {
   solucoes: '/avatares',
   recursos: '/integracao',
   precos: '/precos',
-  faq: '/cases',
+  faq: '/faq',
   demonstracao: '/contato'
 };
 
@@ -1504,7 +1504,28 @@ function abrirSofiaComCTA() {
 function resetAutoReturnTimer() {
   if (autoReturnTimer) clearTimeout(autoReturnTimer);
   if (selectedAvatarIndex !== 0) {
-    autoReturnTimer = setTimeout(() => { if (selectedAvatarIndex !== 0) { updateSelectedAvatar(0); interactionCount = 0; } }, 45000);
+    // Salvar último avatar visitado em sessionStorage
+    const avatar = avatars[selectedAvatarIndex];
+    if (avatar) {
+      sessionStorage.setItem('hd_last_avatar', JSON.stringify({
+        id: getAvatarIdFromName(avatar.name), nome: avatar.name, role: avatar.role || avatar.shortRole,
+        timestamp: Date.now()
+      }));
+    }
+    autoReturnTimer = setTimeout(() => {
+      if (selectedAvatarIndex !== 0) {
+        // Auto-return contextual: saudação inteligente baseada no último avatar
+        const lastAvatar = JSON.parse(sessionStorage.getItem('hd_last_avatar') || 'null');
+        if (lastAvatar && (Date.now() - lastAvatar.timestamp < 300000)) {
+          const contextualGreeting = `Oi! Percebi que você estava interessado no ${lastAvatar.nome}, ${lastAvatar.role}. Se precisar de mais informações sobre isso ou sobre qualquer outro assunto, estou aqui para ajudar!`;
+          falarAvatar('sofia', contextualGreeting, { event_type: 'intro' });
+        } else {
+          saudarAvatar('sofia');
+        }
+        updateSelectedAvatar(0);
+        interactionCount = 0;
+      }
+    }, 45000);
   }
 }
 
@@ -1827,9 +1848,27 @@ const counterObserver = new IntersectionObserver((entries)=>{
 },{threshold:0.3});
 document.querySelectorAll('.counter-card').forEach((card,idx)=>{ card.setAttribute('data-index',idx); counterObserver.observe(card); });
 
-// FAQ
+// FAQ — com TTS verbal
 document.querySelectorAll('.faq-question-full').forEach(q=>{
-  q.addEventListener('click',()=>{ q.classList.toggle('active'); q.nextElementSibling.classList.toggle('open'); });
+  q.addEventListener('click', async ()=>{
+    q.classList.toggle('active');
+    q.nextElementSibling?.classList.toggle('open');
+    // FAQ verbal: enviar resposta para TTS
+    const answer = q.nextElementSibling?.textContent?.trim();
+    if (answer && answer.length > 5) {
+      try {
+        const resp = await fetch(`${window.HD_BACKEND_URL}/api/tts`, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ text: answer, language: 'pt-BR' })
+        });
+        const data = await resp.json();
+        if (data.audio_data) {
+          playBase64Audio(data.audio_data, data.audio_format === 'mp3' ? 'audio/mp3' : 'audio/mp3', null);
+        }
+      } catch(e) { console.warn('FAQ TTS falhou:', e); }
+    }
+  });
 });
 
 // WhatsApp onboarding link builder
