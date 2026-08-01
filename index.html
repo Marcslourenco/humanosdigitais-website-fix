@@ -1683,6 +1683,24 @@ async function updateSelectedAvatar(index) {
   // Removido: saudarAvatar automática no setTimeout (causava multi-fila)
 }
 
+const LOADING_PHRASES = {
+  sofia: "Estou analisando sua pergunta e já vou te responder...",
+  rafael: "Vou consultar a base tributária atualizada e já te retorno...",
+  clara: "Estou checando as informações e já te retorno...",
+  lucas: "Me dá um segundo que já te respondo...",
+  amanda: "Vou checar as informações e já te retorno...",
+  fernanda: "Vou verificar no nosso banco de dados municipal e já te informo...",
+  marina: "Estou analisando sua solicitação e já te respondo com precisão...",
+  roberto: "Vou te responder com precisão técnica, aguarde um momento...",
+  luisa: "Espera aí que estou pesquisando tudo e já te respondo...",
+  lais: "Legal, já vou te responder! Estou fazendo uma pesquisa profunda...",
+  paula: "Vou verificar sua necessidade e já te retorno...",
+  bruno: "Hum, boa pergunta! Aguenta aí que já vou responder...",
+  giovana: "Essa pergunta é interessante, já vou te responder...",
+  marcos: "Essa resposta é fácil, já vou te responder...",
+  carol: "Já estou buscando a informação do Timão e já te falo..."
+};
+
 async function handleInteraction() {
   if (ctaModeActive && ctaStep === 1) {
     const val = chatInput.value.trim();
@@ -1698,9 +1716,10 @@ async function handleInteraction() {
   const userMsg = chatInput.value.trim();
   if (!userMsg) return;
   chatInput.value = '';
-  setAssistantLoading('🎤 Consultando o backend inteligente...');
   const av = avatars[selectedAvatarIndex];
   const avatarId = getAvatarIdFromName(av.name);
+  const loadingText = LOADING_PHRASES[avatarId] || "Estou processando sua pergunta...";
+  setAssistantLoading(loadingText);
   try {
     await falarAvatar(avatarId, userMsg, { event_type: 'query', updateBubble: true });
   } catch (error) {
