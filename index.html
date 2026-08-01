@@ -1902,12 +1902,22 @@ document.querySelectorAll('.faq-question-full').forEach(q=>{
     const answer = q.nextElementSibling?.textContent?.trim();
     if (answer && answer.length > 5) {
       try {
-        const resp = await fetch(`${window.HD_BACKEND_URL}/api/tts`, {
+        // Tenta /api/tts primeiro, fallback para /api/avatar/speak
+        let resp = await fetch(`${window.HD_BACKEND_URL}/api/tts`, {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({ text: answer, language: 'pt-BR' })
+          body: JSON.stringify({ text: answer, language: 'pt-BR', avatar_id: 'sofia' })
         });
-        const data = await resp.json();
+        let data = await resp.json();
+        // Fallback: se /api/tts falhar, usar /api/avatar/speak
+        if (!data.audio_data && !data.success) {
+          resp = await fetch(`${window.HD_BACKEND_URL}/api/avatar/speak`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ avatar_id: 'sofia', text: answer, event_type: 'query', language: 'pt-BR', session_id: 'faq_verbal_' + Date.now() })
+          });
+          data = await resp.json();
+        }
         if (data.audio_data) {
           playBase64Audio(data.audio_data, data.audio_format === 'mp3' ? 'audio/mp3' : 'audio/mp3', null);
         }
