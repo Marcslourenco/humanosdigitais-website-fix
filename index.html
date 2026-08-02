@@ -1114,8 +1114,9 @@ function applyAvatarViseme(visemeName, options = {}) {
   if (options.idle) {
     opacity = '0'; // Força invisibilidade total no repouso
   } else {
-    // Durante a fala, usa a opacidade do visema com um piso de 0.25 para ser visível
-    opacity = Math.max(0.25, (style.opacity || 0.10) * 2.5).toFixed(3);
+    // Durante a fala, usa a opacidade do visema com piso da calibração para ser visível
+    const floor = window.__mouthOpacityFloor || 0.25;
+    opacity = Math.max(floor, (style.opacity || 0.10) * 2.5).toFixed(3);
   }
   floatAvatarPlaceholder.dataset.viseme = viseme.toLowerCase();
   floatAvatarPlaceholder.style.setProperty('--mouth-open', open);
@@ -1567,33 +1568,35 @@ async function updateSelectedAvatar(index) {
     img.onerror = () => { avatarLarge.innerHTML = ''; avatarLarge.textContent = avatar.initials; avatarLarge.style.background = avatar.color; };
     avatarLarge.appendChild(img);
 
-    // Posição da boca por avatar — PARÂMETROS UNIFORMES DE TESTE (P1)
-    const MOUTH_PARAMS_MAP = {
-      'sofia':    { bottom: '45%', width: 5, height: 3, opacity: 30, blur: 0.5 },
-      'rafael':   { bottom: '38%', width: 5, height: 3, opacity: 30, blur: 0.5 },
-      'clara':    { bottom: '37%', width: 5, height: 3, opacity: 30, blur: 0.5 },
-      'lucas':    { bottom: '34%', width: 5, height: 3, opacity: 30, blur: 0.5 },
-      'amanda':   { bottom: '39%', width: 5, height: 3, opacity: 30, blur: 0.5 },
-      'fernanda': { bottom: '49%', width: 5, height: 3, opacity: 30, blur: 0.5 },
-      'marina':   { bottom: '44%', width: 5, height: 3, opacity: 30, blur: 0.5 },
-      'roberto':  { bottom: '38%', width: 5, height: 3, opacity: 30, blur: 0.5 },
-      'luisa':    { bottom: '38%', width: 5, height: 3, opacity: 30, blur: 0.5 },
-      'lais':     { bottom: '50%', width: 5, height: 3, opacity: 30, blur: 0.5 },
-      'paula':    { bottom: '41%', width: 5, height: 3, opacity: 30, blur: 0.5 },
-      'bruno':    { bottom: '35%', width: 5, height: 3, opacity: 30, blur: 0.5 },
-      'giovana':  { bottom: '43%', width: 5, height: 3, opacity: 30, blur: 0.5 },
-      'marcos':   { bottom: '49%', width: 5, height: 3, opacity: 30, blur: 0.5 },
-      'carol':    { bottom: '48%', width: 5, height: 3, opacity: 30, blur: 0.5 }
+    // Calibração individual da boca por avatar (valores do calibrador ao vivo)
+    const MOUTH_CALIBRATION = {
+      sofia:    { bottom: 45, width: 17, height: 3,  opacity: 45, blur: 1.0 },
+      rafael:   { bottom: 38, width: 16, height: 6,  opacity: 40, blur: 1.0 },
+      clara:    { bottom: 37, width: 14, height: 8,  opacity: 40, blur: 1.0 },
+      lucas:    { bottom: 34, width: 19, height: 12, opacity: 51, blur: 1.0 },
+      amanda:   { bottom: 39, width: 20, height: 13, opacity: 40, blur: 1.0 },
+      fernanda: { bottom: 49, width: 14, height: 8,  opacity: 40, blur: 1.0 },
+      marina:   { bottom: 44, width: 14, height: 8,  opacity: 40, blur: 1.0 },
+      roberto:  { bottom: 38, width: 19, height: 9,  opacity: 47, blur: 1.0 },
+      luisa:    { bottom: 38, width: 18, height: 10, opacity: 40, blur: 1.0 },
+      lais:     { bottom: 50, width: 14, height: 8,  opacity: 40, blur: 1.0 },
+      paula:    { bottom: 41, width: 18, height: 9,  opacity: 40, blur: 1.0 },
+      bruno:    { bottom: 35, width: 17, height: 9,  opacity: 40, blur: 1.0 },
+      giovana:  { bottom: 43, width: 15, height: 8,  opacity: 40, blur: 1.0 },
+      marcos:   { bottom: 49, width: 17, height: 8,  opacity: 40, blur: 1.0 },
+      carol:    { bottom: 48, width: 15, height: 9,  opacity: 40, blur: 1.0 }
     };
     const avatarIdNorm = getAvatarIdFromName(avatar.name);
-    const params = MOUTH_PARAMS_MAP[avatarIdNorm] || { bottom: '40%', width: 5, height: 3, opacity: 30, blur: 0.5 };
+    const mc = MOUTH_CALIBRATION[avatarIdNorm] || MOUTH_CALIBRATION.sofia;
     
-    floatAvatarPlaceholder.style.setProperty('--mouth-bottom', params.bottom);
-    floatAvatarPlaceholder.style.setProperty('--mouth-base-width', params.width + '%');
+    // piso de opacidade para a fala respeitar a calibração (lido pelo viseme loop)
+    window.__mouthOpacityFloor = (mc.opacity / 100);
+    floatAvatarPlaceholder.style.setProperty('--mouth-bottom',     mc.bottom + '%');
+    floatAvatarPlaceholder.style.setProperty('--mouth-base-width', mc.width + '%');
     floatAvatarPlaceholder.style.setProperty('--mouth-width', '0.94');
-    floatAvatarPlaceholder.style.setProperty('--mouth-open', (params.height / 100).toFixed(3));
-    floatAvatarPlaceholder.style.setProperty('--mouth-opacity', (params.opacity / 100).toFixed(2));
-    floatAvatarPlaceholder.style.setProperty('--mouth-blur', params.blur + 'px');
+    floatAvatarPlaceholder.style.setProperty('--mouth-open',       (mc.height / 100).toFixed(3));
+    floatAvatarPlaceholder.style.setProperty('--mouth-opacity',    (mc.opacity / 100).toFixed(2));
+    floatAvatarPlaceholder.style.setProperty('--mouth-blur',       mc.blur + 'px');
     avatarLarge.style.background = 'none';
   } else {
     avatarLarge.textContent = avatar.initials;
@@ -1630,8 +1633,6 @@ async function updateSelectedAvatar(index) {
     floatAvatarPlaceholder.style.background = avatar.color;
   }
 
-  // Mapa de posicao da boca por avatar — USADO PELO PRIMEIRO MOUTH_BOTTOM_MAP ACIMA
-  // (mantido como referência; o mapa calibrado MOUTH_BOTTOM_MAP acima é o ativo)
 
   // Evita múltiplas saudções simultâneas
   if (window.hdGreetingInProgress) {
