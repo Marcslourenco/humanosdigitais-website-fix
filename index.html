@@ -1514,7 +1514,7 @@ function resetAutoReturnTimer() {
     if (avatarIdNorm !== 'sofia' && avatar) {
       sessionStorage.setItem('hd_last_avatar', JSON.stringify({
         id: avatarIdNorm, nome: avatar.name, role: avatar.role || avatar.shortRole || 'especialista',
-        timestamp: Date.now()
+        genero: avatar.genero || 'neutro', timestamp: Date.now()
       }));
     }
     autoReturnTimer = setTimeout(() => {
@@ -1524,7 +1524,7 @@ function resetAutoReturnTimer() {
           const last = JSON.parse(lastData);
           const elapsed = Date.now() - last.timestamp;
           if (elapsed < 600000) {
-            const greeting = `Oi! Percebi que você estava interessado no ${last.nome}, ${last.role}. Se precisar de mais informações sobre isso ou sobre qualquer outro assunto, estou aqui para ajudar!`;
+            const greeting = "Oi! Percebi que você se interessou pel" + (last.genero === 'feminino' ? 'a' : 'o') + " " + last.nome + ". Se precisar de mais informações, estou aqui!";
             sessionStorage.setItem('hd_returned_contextual', 'true');
             // Atualiza a UI sem saudar novamente; fala somente a transição contextual.
             updateSelectedAvatar(0, { suppressGreeting: true }).then(() => requestAvatarSpeech('sofia', greeting, 'intro')).then(data => {
