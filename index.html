@@ -88,6 +88,9 @@ body { font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neu
 .quick-replies-small { display: flex; flex-wrap: wrap; gap: 4px; padding: 5px 10px; background: white; border-top: 1px solid #f0f0f0; }
 .quick-reply-btn { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 999px; padding: 3px 8px; font-size: 0.65rem; cursor: pointer; color: #1d4ed8; transition: background 0.2s; }
 .quick-reply-btn:hover { background: #dbeafe; }
+.whatsapp-catalog-btn { margin: 5px 10px; width: calc(100% - 20px); border: 0; border-radius: 999px; padding: 7px 10px; background: #25D366; color: white; font-size: 0.7rem; font-weight: 700; cursor: pointer; }
+.whatsapp-catalog-btn:hover { background: #1da851; }
+.whatsapp-confirmation { margin: 5px 10px; padding: 6px 9px; border-radius: 8px; background: #dcfce7; color: #166534; font-size: 0.7rem; font-weight: 600; }
 .avatar-input-overlay {
   display: flex;
   align-items: center;
@@ -610,6 +613,8 @@ body { font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neu
     </div>
     <div class="chat-bubble-small" id="saudacaoMsg">Oi! Sou a Sofia, sua anfitriã aqui na plataforma. Estou pronta para te apresentar nossos humanos digitais e tirar qualquer dúvida. Vamos conversar? 😊</div>
     <div class="quick-replies-small" id="quickRepliesArea"></div>
+    <button class="whatsapp-catalog-btn" id="whatsappCatalogBtn" type="button">📱 Receber catálogo no WhatsApp</button>
+    <div id="whatsappConfirmation" class="whatsapp-confirmation" hidden></div>
     <div class="avatar-input-overlay">
       <input type="text" placeholder="Digite sua mensagem..." id="chatInput">
       <div class="input-actions-small">
@@ -1069,6 +1074,8 @@ const sendBtn = document.getElementById('sendMessageBtn');
 const chatInput = document.getElementById('chatInput');
 const saudacaoMsg = document.getElementById('saudacaoMsg');
 const quickRepliesArea = document.getElementById('quickRepliesArea');
+const whatsappCatalogBtn = document.getElementById('whatsappCatalogBtn');
+const whatsappConfirmation = document.getElementById('whatsappConfirmation');
 
 const perguntasBox = document.getElementById('perguntasBox');
 const perguntasLista = document.getElementById('perguntasLista');
@@ -1417,6 +1424,7 @@ async function requestAvatarSpeech(avatarId, texto, eventType = 'query', context
   if (!data?.audio_data) {
     throw new Error('Backend não retornou audio_data');
   }
+  if (data.whatsapp_sent === true) showWhatsappConfirmation('✅ Mensagem enviada no seu WhatsApp!');
   return data;
 }
 
@@ -1462,7 +1470,16 @@ window.saudarAvatar = saudarAvatar;
 window.getCurrentContextUrl = getCurrentContextUrl;
 
 function limparQuickReplies() { quickRepliesArea.innerHTML = ''; }
-function renderAssistantMessage(message) { saudacaoMsg.textContent = message; }
+function showWhatsappConfirmation(message) {
+  if (!whatsappConfirmation) return;
+  whatsappConfirmation.textContent = message;
+  whatsappConfirmation.hidden = false;
+  setTimeout(() => { whatsappConfirmation.hidden = true; }, 8000);
+}
+function renderAssistantMessage(message) {
+  saudacaoMsg.textContent = message;
+  if (/whatsapp/i.test(message) && /enviad[ao]/i.test(message)) showWhatsappConfirmation('✅ Mensagem enviada no seu WhatsApp!');
+}
 function setAssistantLoading(message = '🎤 Gerando resposta inteligente...') { saudacaoMsg.textContent = message; }
 
 function mostrarPerguntasMainArea(avatar) {
@@ -1487,6 +1504,28 @@ function mostrarPerguntasMainArea(avatar) {
     perguntasLista.innerHTML = '';
   }
 }
+
+async function solicitarCatalogoWhatsApp() {
+  const numero = window.prompt('Digite seu número de WhatsApp com DDD:');
+  if (!numero || !numero.trim()) return;
+  whatsappCatalogBtn.disabled = true;
+  try {
+    const response = await nativeFetch(`${String(window.HD_BACKEND_URL || '').replace(/\/+$/, '')}/api/whatsapp/send`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ numero: numero.trim(), mensagem: 'Olá! Aqui é da equipe Humanos Digitais. Recebemos seu pedido de catálogo e o Marcos entrará em contato em breve.' })
+    });
+    const data = await response.json();
+    if (!response.ok || !data.whatsapp_sent) throw new Error(data.error || 'WhatsApp não configurado');
+    showWhatsappConfirmation('✅ Mensagem enviada no seu WhatsApp!');
+  } catch (error) {
+    showWhatsappConfirmation('Não foi possível enviar agora. O Marcos poderá entrar em contato manualmente.');
+    console.warn('Falha ao enviar WhatsApp:', error);
+  } finally {
+    whatsappCatalogBtn.disabled = false;
+  }
+}
+if (whatsappCatalogBtn) whatsappCatalogBtn.addEventListener('click', solicitarCatalogoWhatsApp);
 
 function abrirSofiaComCTA() {
   const fl = document.getElementById('avatarFlutuante');
