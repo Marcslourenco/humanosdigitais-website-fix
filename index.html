@@ -1381,7 +1381,7 @@ function normalizeVisemeFrames(data, text, durationMs) {
   return generateMockVisemesFromText(text, durationMs);
 }
 
-async function requestAvatarSpeech(avatarId, texto, eventType = 'query') {
+async function requestAvatarSpeech(avatarId, texto, eventType = 'query', contextUrl = null) {
   const cleanAvatarId = getAvatarIdFromName(avatarId);
   const cleanText = sanitizeSpeechText(texto);
   if (!cleanAvatarId) throw new Error('avatarId inválido');
@@ -1400,7 +1400,7 @@ async function requestAvatarSpeech(avatarId, texto, eventType = 'query') {
       event_type: resolvedEventType,
       language: 'pt-BR',
       session_id: getOrCreateSessionForAvatar(cleanAvatarId),
-      context_url: getCurrentContextUrl()
+      context_url: contextUrl || getCurrentContextUrl()
     })
   });
   
@@ -1525,9 +1525,10 @@ function resetAutoReturnTimer() {
           const elapsed = Date.now() - last.timestamp;
           if (elapsed < 600000) {
             const greeting = "Oi! Percebi que você se interessou pel" + (last.genero === 'feminino' ? 'a' : 'o') + " " + last.nome + ". Se precisar de mais informações, estou aqui!";
+            const currentPath = window.location.pathname || '/';
             sessionStorage.setItem('hd_returned_contextual', 'true');
             // Atualiza a UI sem saudar novamente; fala somente a transição contextual.
-            updateSelectedAvatar(0, { suppressGreeting: true }).then(() => requestAvatarSpeech('sofia', greeting, 'intro')).then(data => {
+            updateSelectedAvatar(0, { suppressGreeting: true }).then(() => requestAvatarSpeech('sofia', greeting, 'intro', currentPath)).then(data => {
               if (data && data.audio_data) {
                 const speechText = data.text_response || data.text_spoken || greeting;
                 const speechMeta = {
