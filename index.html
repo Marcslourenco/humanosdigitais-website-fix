@@ -1398,7 +1398,7 @@ async function requestAvatarSpeech(avatarId, texto, eventType = 'query', context
     ? 'intro' 
     : (eventType || 'query');
   
-  const response = await nativeFetch(getBackendSpeakUrl(), {
+  const speechRequest = {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -1409,7 +1409,17 @@ async function requestAvatarSpeech(avatarId, texto, eventType = 'query', context
       session_id: getOrCreateSessionForAvatar(cleanAvatarId),
       context_url: contextUrl || getCurrentContextUrl()
     })
-  });
+  };
+  let response;
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      response = await nativeFetch(getBackendSpeakUrl(), speechRequest);
+      if (![502, 503, 504].includes(response.status) || attempt === 1) break;
+    } catch (error) {
+      if (attempt === 1 || !(error instanceof TypeError || error?.name === 'NetworkError')) throw error;
+    }
+    await new Promise(resolve => setTimeout(resolve, 1500));
+  }
   
   let data = null;
   try {
