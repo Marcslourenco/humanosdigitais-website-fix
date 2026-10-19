@@ -91,6 +91,19 @@ body { font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neu
 .whatsapp-catalog-btn { margin: 5px 10px; width: calc(100% - 20px); border: 0; border-radius: 999px; padding: 7px 10px; background: #25D366; color: white; font-size: 0.7rem; font-weight: 700; cursor: pointer; }
 .whatsapp-catalog-btn:hover { background: #1da851; }
 .whatsapp-confirmation { margin: 5px 10px; padding: 6px 9px; border-radius: 8px; background: #dcfce7; color: #166534; font-size: 0.7rem; font-weight: 600; }
+.whatsapp-modal-backdrop { position: fixed; inset: 0; z-index: 3000; display: none; align-items: center; justify-content: center; padding: 20px; background: rgba(10,15,28,.62); }
+.whatsapp-modal-backdrop.visible { display: flex; animation: whatsappFadeIn .18s ease-out; }
+.whatsapp-modal { width: min(100%, 360px); border-radius: 18px; background: white; color: #172033; box-shadow: 0 18px 60px rgba(0,0,0,.3); overflow: hidden; }
+.whatsapp-modal-header { display: flex; align-items: center; gap: 10px; padding: 16px 18px; color: white; background: linear-gradient(135deg,#4f46e5,#7c3aed); }
+.whatsapp-modal-avatar { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 50%; background: rgba(255,255,255,.22); font-weight: 800; }
+.whatsapp-modal-body { padding: 18px; }
+.whatsapp-modal-body p { margin-bottom: 12px; font-size: .9rem; }
+.whatsapp-modal-body input { width: 100%; padding: 11px 12px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 1rem; }
+.whatsapp-modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
+.whatsapp-modal-actions button { border: 0; border-radius: 999px; padding: 9px 16px; cursor: pointer; font-weight: 700; }
+.whatsapp-modal-cancel { background: #eef2f7; color: #334155; }
+.whatsapp-modal-submit { background: #25D366; color: white; }
+@keyframes whatsappFadeIn { from { opacity: 0; } to { opacity: 1; } }
 .avatar-input-overlay {
   display: flex;
   align-items: center;
@@ -615,6 +628,12 @@ body { font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neu
     <div class="quick-replies-small" id="quickRepliesArea"></div>
     <button class="whatsapp-catalog-btn" id="whatsappCatalogBtn" type="button">📱 Receber catálogo no WhatsApp</button>
     <div id="whatsappConfirmation" class="whatsapp-confirmation" hidden></div>
+  <div id="whatsapp-modal" class="whatsapp-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="whatsapp-modal-title">
+    <div class="whatsapp-modal">
+      <div class="whatsapp-modal-header"><div class="whatsapp-modal-avatar">S</div><strong id="whatsapp-modal-title">Sofia - Humanos Digitais</strong></div>
+      <div class="whatsapp-modal-body"><p>Digite seu WhatsApp com DDD para receber o catálogo:</p><input id="whatsapp-phone-input" type="tel" inputmode="tel" autocomplete="tel" placeholder="(14) 98112-3802" aria-label="Número do WhatsApp"><div class="whatsapp-modal-actions"><button type="button" class="whatsapp-modal-cancel" id="whatsapp-modal-cancel">Cancelar</button><button type="button" class="whatsapp-modal-submit" id="whatsapp-modal-submit">Enviar</button></div></div>
+    </div>
+  </div>
     <div class="avatar-input-overlay">
       <input type="text" placeholder="Digite sua mensagem..." id="chatInput">
       <div class="input-actions-small">
@@ -1515,27 +1534,51 @@ function mostrarPerguntasMainArea(avatar) {
   }
 }
 
+function showWhatsAppModal() {
+  const modal = document.getElementById('whatsapp-modal');
+  const input = document.getElementById('whatsapp-phone-input');
+  if (!modal || !input) return;
+  modal.classList.add('visible');
+  input.value = '';
+  setTimeout(() => input.focus(), 0);
+}
+function hideWhatsAppModal() {
+  document.getElementById('whatsapp-modal')?.classList.remove('visible');
+}
 async function solicitarCatalogoWhatsApp() {
-  const numero = window.prompt('Digite seu número de WhatsApp com DDD:');
-  if (!numero || !numero.trim()) return;
-  whatsappCatalogBtn.disabled = true;
+  const modal = document.getElementById('whatsapp-modal');
+  const input = document.getElementById('whatsapp-phone-input');
+  if (!modal || !input) return;
+  const numero = input.value.replace(/\D/g, '');
+  if (numero.length < 10) { input.focus(); showWhatsappConfirmation('Informe um número válido com DDD.'); return; }
+  if (whatsappCatalogBtn) whatsappCatalogBtn.disabled = true;
   try {
     const response = await nativeFetch(`${String(window.HD_BACKEND_URL || '').replace(/\/+$/, '')}/api/whatsapp/send`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ numero: numero.trim(), mensagem: 'Olá! Aqui é da equipe Humanos Digitais. Recebemos seu pedido de catálogo e o Marcos entrará em contato em breve.' })
+      body: JSON.stringify({ phone_number: numero, message: 'Olá! Aqui é da equipe Humanos Digitais. Quero receber o catálogo digital.' })
     });
     const data = await response.json();
-    if (!response.ok || !data.whatsapp_sent) throw new Error(data.error || 'WhatsApp não configurado');
-    showWhatsappConfirmation('✅ Mensagem enviada no seu WhatsApp!');
+    hideWhatsAppModal();
+    if (data.requires_user_initiated) {
+      showWhatsappConfirmation(data.instructions || "Envie 'oi' para +55 14 3625-1830 no WhatsApp para receber o catálogo.");
+      return;
+    }
+    if (!response.ok || !data.success) throw new Error(data.error || 'WhatsApp não configurado');
+    showWhatsappConfirmation('✅ Catálogo enviado! Confira seu WhatsApp em instantes.');
   } catch (error) {
-    showWhatsappConfirmation('Não foi possível enviar agora. O Marcos poderá entrar em contato manualmente.');
+    hideWhatsAppModal();
+    showWhatsappConfirmation('Não foi possível enviar agora. Tente novamente ou fale com o Marcos.');
     console.warn('Falha ao enviar WhatsApp:', error);
   } finally {
-    whatsappCatalogBtn.disabled = false;
+    if (whatsappCatalogBtn) whatsappCatalogBtn.disabled = false;
   }
 }
-if (whatsappCatalogBtn) whatsappCatalogBtn.addEventListener('click', solicitarCatalogoWhatsApp);
+if (whatsappCatalogBtn) whatsappCatalogBtn.addEventListener('click', showWhatsAppModal);
+document.getElementById('whatsapp-modal-cancel')?.addEventListener('click', hideWhatsAppModal);
+document.getElementById('whatsapp-modal-submit')?.addEventListener('click', solicitarCatalogoWhatsApp);
+document.getElementById('whatsapp-phone-input')?.addEventListener('keydown', (event) => { if (event.key === 'Enter') solicitarCatalogoWhatsApp(); });
+document.getElementById('whatsapp-modal')?.addEventListener('click', (event) => { if (event.target.id === 'whatsapp-modal') hideWhatsAppModal(); });
 
 function abrirSofiaComCTA() {
   const fl = document.getElementById('avatarFlutuante');
