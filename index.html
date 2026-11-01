@@ -3,7 +3,79 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Humanos Digitais - Plataforma de Trabalhadores Digitais</title>
+<title>Humanos Digitais e Avatares com IA | Atendimento 24/7 Brasil</title>
+<meta name="description" content="Crie avatares fotorrealistas com IA para atendimento, vendas e treinamento no Brasil. Sofia atende 24/7.">
+<meta name="keywords" content="humanos digitais, avatares IA, inteligência artificial conversacional, atendimento automatizado Brasil">
+<link rel="canonical" href="https://humanosdigitais.com.br/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Humanos Digitais e Avatares com IA | Atendimento 24/7 Brasil">
+<meta property="og:description" content="Crie avatares fotorrealistas com IA para atendimento, vendas e treinamento no Brasil.">
+<meta property="og:url" content="https://humanosdigitais.com.br/">
+<meta property="og:image" content="https://humanosdigitais.com.br/assets/og-humanos-digitais-1200x630.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Humanos Digitais e Avatares com IA">
+<meta name="twitter:description" content="Atendimento conversacional 24/7 com avatares fotorrealistas.">
+<meta name="twitter:image" content="https://humanosdigitais.com.br/assets/og-humanos-digitais-1200x630.jpg">
+<script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "name": "Humanos Digitais",
+      "url": "https://humanosdigitais.com.br",
+      "logo": "https://humanosdigitais.com.br/assets/logo/logo_sem_fundo.png",
+      "sameAs": [
+        "https://www.linkedin.com/company/humanos-digitais",
+        "https://www.instagram.com/humanosdigitais"
+      ],
+      "contactPoint": {
+        "telephone": "+55-14-99105-5881",
+        "contactType": "customer service",
+        "areaServed": "BR"
+      }
+    },
+    {
+      "@type": "WebSite",
+      "url": "https://humanosdigitais.com.br",
+      "inLanguage": "pt-BR"
+    },
+    {
+      "@type": "Service",
+      "name": "Avatares e Humanos Digitais com IA",
+      "serviceType": "Inteligência Artificial Conversacional",
+      "areaServed": "BR"
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "O que é um humano digital?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Um humano digital é um avatar 3D fotorrealista baseado em IA capaz de processar linguagem natural, expressar emoções e dialogar em tempo real."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Como integrar um humano digital?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Integração via API em sites, apps, totens e CRMs conectando-se a LLMs como ChatGPT e Gemini."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Principais aplicações?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Atendimento 24/7, vendas automatizadas, treinamentos corporativos e recepção virtual."
+          }
+        }
+      ]
+    }
+  ]
+}</script>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif; background: #0A2A44; color: #1a1a1a; line-height: 1.5; overflow-x: hidden; }
@@ -584,9 +656,22 @@ body { font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neu
   .panel-inner { padding: 60px 20px 40px; }
   .nav-links { display: none; }
 }
+
+/* SEO, acessibilidade e transições de estado */
+.skip-link { position: fixed; left: 12px; top: -80px; z-index: 5000; padding: 12px 16px; background: #fff; color: #0A2A44; font-weight: 700; border-radius: 8px; }
+.skip-link:focus { top: 12px; }
+:focus-visible { outline: 3px solid #fbbf24; outline-offset: 3px; }
+button, a { min-height: 48px; }
+.avatar-transition { transition: opacity 0.2s ease; }
+.faq-left p, .faq-left .note { color: #CBD5E1; }
+.geo-knowledge-base { max-width: 1120px; margin: 0 auto; padding: 48px 5%; background: #0A2A44; color: #fff; }
+.geo-knowledge-base h2 { margin-bottom: 24px; }
+.geo-knowledge-base article { margin-top: 18px; }
+.geo-knowledge-base h3 { color: #bfdbfe; }
 </style>
 </head>
 <body>
+<a href="#main-content" class="skip-link">Pular para conteúdo</a>
 
 <!-- HEADER -->
 <header class="header">
@@ -616,7 +701,7 @@ body { font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neu
       <p id="floatAvatarRole">Atendimento</p>
     </div>
     <div class="demo-badge" id="demoBadge">DEMO</div>
-    <button class="minimize-btn" id="minimizeBtn">−</button>
+    <button class="minimize-btn" id="minimizeBtn" aria-label="Minimizar ou expandir o avatar">−</button>
   </div>
   <div class="avatar-body" id="avatarBody">
     <div class="avatar-video-area">
@@ -631,19 +716,20 @@ body { font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neu
   <div id="whatsapp-modal" class="whatsapp-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="whatsapp-modal-title">
     <div class="whatsapp-modal">
       <div class="whatsapp-modal-header"><div class="whatsapp-modal-avatar">S</div><strong id="whatsapp-modal-title">Sofia - Humanos Digitais</strong></div>
-      <div class="whatsapp-modal-body"><p>Digite seu WhatsApp com DDD para receber o catálogo:</p><input id="whatsapp-phone-input" type="tel" inputmode="tel" autocomplete="tel" placeholder="(14) 98112-3802" aria-label="Número do WhatsApp"><div class="whatsapp-modal-actions"><button type="button" class="whatsapp-modal-cancel" id="whatsapp-modal-cancel">Cancelar</button><button type="button" class="whatsapp-modal-submit" id="whatsapp-modal-submit">Enviar</button></div></div>
+      <div class="whatsapp-modal-body"><p>Digite seu WhatsApp com DDD para receber o catálogo:</p><input id="whatsapp-phone-input" type="tel" inputmode="tel" autocomplete="tel" placeholder="(14) 98112-3802" aria-label="Número do WhatsApp"><div class="whatsapp-modal-actions"><button type="button" class="whatsapp-modal-cancel" id="whatsapp-modal-cancel" aria-label="Cancelar envio do catálogo">Cancelar</button><button type="button" class="whatsapp-modal-submit" id="whatsapp-modal-submit" aria-label="Enviar pedido de catálogo">Enviar</button></div></div>
     </div>
   </div>
     <div class="avatar-input-overlay">
       <input type="text" placeholder="Digite sua mensagem..." id="chatInput">
       <div class="input-actions-small">
-        <button id="micBtn" title="Falar">🎤</button>
-        <button id="sendMessageBtn" title="Enviar">➤</button>
+        <button id="micBtn" title="Falar" aria-label="Usar microfone">🎤</button>
+        <button id="sendMessageBtn" title="Enviar" aria-label="Enviar mensagem">➤</button>
       </div>
     </div>
   </div>
 </div>
 
+<main id="main-content">
 <!-- SEÇÃO 1 — HERO STICKY -->
 <section class="section-1">
   <div class="hero">
@@ -960,6 +1046,13 @@ body { font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neu
   </div>
 </section>
 
+<section class="geo-knowledge-base" aria-labelledby="geo-title">
+  <h2 id="geo-title">O que você precisa saber sobre Humanos Digitais</h2>
+  <article><h3>Definição</h3><p>Um humano digital é uma entidade virtual impulsionada por IA avançada, projetada para imitar aparência, linguagem e comunicação humana em tempo real.</p></article>
+  <article><h3>Aplicações</h3><p>Empresas brasileiras usam humanos digitais para atendimento 24/7, treinamentos imersivos e totens interativos, reduzindo custos e ampliando a capacidade de atendimento.</p></article>
+</section>
+</main>
+
 <!-- VERCEL FORCE REBUILD: 2026-03-24T18:05:00Z -->
 <script>
 // Captura a referência nativa para evitar recursão de interceptors externos.
@@ -972,6 +1065,8 @@ if (!nativeFetch) console.warn('Fetch nativo indisponível neste navegador.');
 window.hdAudioUnlocked = false;
 window.hdPendingGreeting = null;
 window.hdGreetingInProgress = false; // evita múltiplas filas
+window.hdSpeechAbortController = null;
+window.hdSofiaPreloaded = false;
 
 // ========== BACKEND TTS ==========
 // Backend TTS com HTTPS nativo no Render
@@ -1417,9 +1512,12 @@ async function requestAvatarSpeech(avatarId, texto, eventType = 'query', context
     ? 'intro' 
     : (eventType || 'query');
   
+  if (window.hdSpeechAbortController) window.hdSpeechAbortController.abort();
+  window.hdSpeechAbortController = new AbortController();
   const speechRequest = {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
+    signal: window.hdSpeechAbortController.signal,
     body: JSON.stringify({
       avatar_id: cleanAvatarId,
       text: cleanText || '',
@@ -1494,6 +1592,21 @@ async function saudarAvatar(avatarId) {
   return falarAvatar(cleanAvatarId, avatar.saudacao, { event_type: 'intro', updateBubble: true });
 }
 
+async function preloadSofiaGreeting() {
+  if (window.hdSofiaPreloaded) return;
+  window.hdSofiaPreloaded = true;
+  try {
+    const data = await requestAvatarSpeech('sofia', avatars[0].saudacao, 'intro');
+    if (data?.audio_data) {
+      const speechText = data.text_response || data.text_spoken || avatars[0].saudacao;
+      window.__hdPendingAudioBase64 = data.audio_data;
+      window.__hdPendingAudioMime = 'audio/mp3';
+      window.__hdPendingSpeechMeta = { avatarId: 'sofia', renderText: speechText, durationMs: data.duration_ms || null, visemeFrames: normalizeVisemeFrames(data, speechText, data.duration_ms || null) };
+      console.log('[AUDIO] Saudação inicial da Sofia pré-carregada');
+    }
+  } catch (error) { console.warn('[AUDIO] Pré-carregamento da Sofia indisponível:', error); }
+}
+
 window.falarAvatar = falarAvatar;
 window.saudarAvatar = saudarAvatar;
 window.getCurrentContextUrl = getCurrentContextUrl;
@@ -1506,6 +1619,9 @@ function showWhatsappConfirmation(message) {
   setTimeout(() => { whatsappConfirmation.hidden = true; }, 8000);
 }
 function renderAssistantMessage(message) {
+  saudacaoMsg.classList.remove('avatar-transition');
+  void saudacaoMsg.offsetWidth;
+  saudacaoMsg.classList.add('avatar-transition');
   saudacaoMsg.textContent = message;
   if (/whatsapp/i.test(message) && /enviad[ao]/i.test(message)) showWhatsappConfirmation('✅ Mensagem enviada no seu WhatsApp!');
 }
@@ -1655,6 +1771,8 @@ function resetAutoReturnTimer() {
 }
 
 async function updateSelectedAvatar(index, options = {}) {
+  if (window.hdSpeechAbortController) { window.hdSpeechAbortController.abort(); window.hdSpeechAbortController = null; }
+  if (saudacaoMsg) { saudacaoMsg.textContent = ''; saudacaoMsg.classList.add('avatar-transition'); }
   if (index < 0 || index >= avatars.length) { console.error('indice fora de bounds:', index); return; }
   selectedAvatarIndex = index;
   const avatar = avatars[index];
@@ -1830,6 +1948,7 @@ async function handleInteraction() {
   try {
     await falarAvatar(avatarId, userMsg, { event_type: 'query', updateBubble: true });
   } catch (error) {
+    if (error?.name === 'AbortError') return;
     console.warn('Falha no backend/TTS do avatar:', error);
     renderAssistantMessage('Não consegui consultar o backend agora. Verifique a URL do Render, o CORS e se o deploy com text_response/visemes está ativo.');
     startIdleAvatarMotion();
@@ -2059,6 +2178,10 @@ function montarLinkWhatsApp(e) {
   const url = 'https://wa.me/5511XXXXXXXXX?text=' + encodeURIComponent(msg);
   window.open(url, '_blank');
 }
+
+document.addEventListener('click', () => { unlockAudioContext(); }, { once: true, passive: true });
+document.addEventListener('touchstart', () => { unlockAudioContext(); }, { once: true, passive: true });
+document.addEventListener('DOMContentLoaded', preloadSofiaGreeting, { once: true });
 
 updateSelectedAvatar(0);
 
