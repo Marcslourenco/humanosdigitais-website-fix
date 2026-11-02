@@ -167,7 +167,8 @@ body { font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neu
 .whatsapp-modal-backdrop.visible { display: flex; animation: whatsappFadeIn .18s ease-out; }
 .whatsapp-modal { width: min(100%, 360px); border-radius: 18px; background: white; color: #172033; box-shadow: 0 18px 60px rgba(0,0,0,.3); overflow: hidden; }
 .whatsapp-modal-header { display: flex; align-items: center; gap: 10px; padding: 16px 18px; color: white; background: linear-gradient(135deg,#4f46e5,#7c3aed); }
-.whatsapp-modal-avatar { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 50%; background: rgba(255,255,255,.22); font-weight: 800; }
+.whatsapp-modal-avatar { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 50%; background: rgba(255,255,255,.22); font-weight: 800; overflow: hidden; }
+.whatsapp-modal-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .whatsapp-modal-body { padding: 18px; }
 .whatsapp-modal-body p { margin-bottom: 12px; font-size: .9rem; }
 .whatsapp-modal-body input { width: 100%; padding: 11px 12px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 1rem; }
@@ -251,6 +252,14 @@ body { font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neu
 #floatAvatarPlaceholder.is-speaking img {
   filter: saturate(1.02) contrast(1.01);
 }
+@keyframes hdIdleBlinkSlow { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(0.96); } }
+@keyframes hdIdleHeadTiltLeft { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(-1.2deg); } }
+@keyframes hdIdleHeadTiltRight { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(1.2deg); } }
+@keyframes hdIdleMicroSmile { 0%, 100% { filter: saturate(1); } 50% { filter: saturate(1.08) brightness(1.01); } }
+#floatAvatarPlaceholder.idle-blink-slow { animation: hdIdleBlinkSlow .3s ease-in-out; }
+#floatAvatarPlaceholder.idle-head-tilt-left { animation: hdIdleHeadTiltLeft 2s ease-in-out; }
+#floatAvatarPlaceholder.idle-head-tilt-right { animation: hdIdleHeadTiltRight 2s ease-in-out; }
+#floatAvatarPlaceholder.idle-micro-smile { animation: hdIdleMicroSmile 1s ease-in-out; }
 @keyframes hdBreathing {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-1.5px); }
@@ -715,7 +724,7 @@ button, a { min-height: 48px; }
     <div id="whatsappConfirmation" class="whatsapp-confirmation" hidden></div>
   <div id="whatsapp-modal" class="whatsapp-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="whatsapp-modal-title">
     <div class="whatsapp-modal">
-      <div class="whatsapp-modal-header"><div class="whatsapp-modal-avatar">S</div><strong id="whatsapp-modal-title">Sofia - Humanos Digitais</strong></div>
+      <div class="whatsapp-modal-header"><div class="whatsapp-modal-avatar"><img src="/assets/avatares/estaticas/01-sofia-principal.png" alt="Sofia" onerror="this.style.display='none';this.parentElement.textContent='S';"></div><strong id="whatsapp-modal-title">Sofia - Humanos Digitais</strong></div>
       <div class="whatsapp-modal-body"><p>Digite seu WhatsApp com DDD para receber o catálogo:</p><input id="whatsapp-phone-input" type="tel" inputmode="tel" autocomplete="tel" placeholder="(14) 98112-3802" aria-label="Número do WhatsApp"><div class="whatsapp-modal-actions"><button type="button" class="whatsapp-modal-cancel" id="whatsapp-modal-cancel" aria-label="Cancelar envio do catálogo">Cancelar</button><button type="button" class="whatsapp-modal-submit" id="whatsapp-modal-submit" aria-label="Enviar pedido de catálogo">Enviar</button></div></div>
     </div>
   </div>
@@ -1132,6 +1141,7 @@ let currentContextUrl = window.location.pathname || '/';
 let hdSpeechTimers = [];
 let hdBlinkTimer = null;
 let hdIdleTimer = null;
+let hdSubtleIdleTimer = null;
 let hdIsSpeaking = false;
 
 const SECTION_CONTEXT_MAP = {
@@ -1257,8 +1267,11 @@ function clearSpeechAnimationTimers() {
 function clearIdleTimers() {
   if (hdBlinkTimer) clearTimeout(hdBlinkTimer);
   if (hdIdleTimer) clearTimeout(hdIdleTimer);
+  if (hdSubtleIdleTimer) clearTimeout(hdSubtleIdleTimer);
   hdBlinkTimer = null;
   hdIdleTimer = null;
+  hdSubtleIdleTimer = null;
+  floatAvatarPlaceholder?.classList.remove('idle-blink-slow', 'idle-head-tilt-left', 'idle-head-tilt-right', 'idle-micro-smile');
 }
 
 function stopAvatarSpeechAnimation(resetToIdle = true) {
@@ -1324,7 +1337,31 @@ function startIdleAvatarMotion() {
   applyAvatarViseme('CLOSED', { idle: true });
   scheduleBlink();
   scheduleIdleVisemePulse();
+  resetSubtleIdleAnimation();
 }
+
+function resetSubtleIdleAnimation() {
+  if (!floatAvatarPlaceholder) return;
+  if (hdSubtleIdleTimer) clearTimeout(hdSubtleIdleTimer);
+  floatAvatarPlaceholder.classList.remove('idle-blink-slow', 'idle-head-tilt-left', 'idle-head-tilt-right', 'idle-micro-smile');
+  if (hdIsSpeaking) return;
+  hdSubtleIdleTimer = setTimeout(() => {
+    if (hdIsSpeaking) return;
+    const animations = ['idle-blink-slow', 'idle-head-tilt-left', 'idle-head-tilt-right', 'idle-micro-smile'];
+    const selected = animations[Math.floor(Math.random() * animations.length)];
+    floatAvatarPlaceholder.classList.remove(...animations);
+    void floatAvatarPlaceholder.offsetWidth;
+    floatAvatarPlaceholder.classList.add(selected);
+    window.setTimeout(() => {
+      floatAvatarPlaceholder?.classList.remove(selected);
+      resetSubtleIdleAnimation();
+    }, selected === 'idle-blink-slow' ? 350 : selected === 'idle-micro-smile' ? 1100 : 2100);
+  }, 5000);
+}
+
+['mousemove', 'click', 'keypress', 'touchstart'].forEach((eventName) => {
+  document.addEventListener(eventName, resetSubtleIdleAnimation, { passive: true });
+});
 
 function normalizeContextPath(rawValue) {
   const fallback = window.location.pathname || '/';
@@ -1682,6 +1719,8 @@ async function solicitarCatalogoWhatsApp() {
     }
     if (!response.ok || !data.success) throw new Error(data.error || 'WhatsApp não configurado');
     showWhatsappConfirmation('✅ Catálogo enviado! Confira seu WhatsApp em instantes.');
+    const whatsappText = encodeURIComponent('Oi, você solicitou o nosso catálogo digital');
+    window.open(`https://wa.me/5514991055881?text=${whatsappText}`, '_blank', 'noopener');
   } catch (error) {
     hideWhatsAppModal();
     showWhatsappConfirmation('Não foi possível enviar agora. Tente novamente ou fale com o Marcos.');
